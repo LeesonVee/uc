@@ -13,7 +13,7 @@ import org.springframework.web.filter.CorsFilter;
 public class UcApplication {
 	private static final Logger LOG = LoggerFactory.getLogger(UcApplication.class);
 	public static void main(String[] args) {
-		LOG.info("==========");
+		LOG.info("==========11");
 		SpringApplication.run(UcApplication.class, args);
 	}
 	private CorsConfiguration buildConfig() {
