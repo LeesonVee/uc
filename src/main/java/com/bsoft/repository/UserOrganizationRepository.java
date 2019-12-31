@@ -8,4 +8,5 @@ import org.springframework.data.repository.CrudRepository;
  * date 2019/12/30.
  */
 public interface UserOrganizationRepository extends CrudRepository<UserOrganization,Integer> {
+
 }

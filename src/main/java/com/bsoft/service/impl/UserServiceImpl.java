@@ -45,7 +45,13 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public boolean existsById(String id) {
-        return false;
+        boolean exists = false;
+        BaseUser user = baseUserRepository.getBaseUserByPwd(id);
+        if(user!=null){
+            exists = true;
+        }
+        System.out.println("啦啦啦啦....");
+        return exists;
     }
 
     @Override
