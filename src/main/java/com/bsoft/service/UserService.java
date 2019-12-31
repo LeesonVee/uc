@@ -18,4 +18,6 @@ public interface UserService {
     public boolean existsById(String id);
 
     public List<BaseUser> findAll();
+
+    public BaseUser checkLogonUser(String name,String password,String status);
 }

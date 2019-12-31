@@ -17,8 +17,8 @@ public class Response<T> implements Serializable{
 
     private static final long serialVersionUID = -4505655308965878999L;
 
-    //请求成功返回码为：0000
-    private static final String successCode = "0000";
+    //请求成功返回码为：200
+    private static final String successCode = "200";
     //返回数据
     private T data;
     //返回码

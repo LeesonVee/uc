@@ -50,12 +50,20 @@ public class UserServiceImpl implements UserService{
         if(user!=null){
             exists = true;
         }
-        System.out.println("啦啦啦啦....");
         return exists;
     }
 
     @Override
     public List<BaseUser> findAll() {
         return (List<BaseUser>) baseUserRepository.findAll();
+    }
+
+    @Override
+    public BaseUser checkLogonUser(String name, String password,String status) {
+        List<BaseUser> list = baseUserRepository.getLogonUsers(name,password,status);
+        if(list!=null && list.size()>0){
+            return list.get(0);
+        }
+        return null;
     }
 }

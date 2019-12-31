@@ -29,7 +29,7 @@ public class BaseUser {
     private String password;
     @Column(name="status")
     private String status;
-    @Column(name="createdt")
+//    @Column(name="createdt")
     private Date createdt;
 
     public String getId() {

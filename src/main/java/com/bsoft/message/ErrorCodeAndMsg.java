@@ -6,6 +6,7 @@ package com.bsoft.message;
  */
 public enum ErrorCodeAndMsg {
     HTTP_CODE_404("404","不存在"),
+    HTTP_CODE_415("415","参数缺失"),
     HTTP_CODE_500("500","系统异常"),
     Entity_does_not_exist("0001","数据不存在"),
     Column_length_long("0002","字段长度过长"),

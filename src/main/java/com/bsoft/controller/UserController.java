@@ -35,39 +35,13 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @RequestMapping("/oracle")
-    String index1() {
-        TestUser testUser = new TestUser("Hello Oracle");
-        userService.addTestUser(testUser);
-        return "Hello Oracle";
-    }
-    @RequestMapping("/oracle2")
-    String index2() {
-        UserOrganization organ = new UserOrganization();
-        organ.setOrganizcode("456");
-        organ.setLogoff("2");
-        userService.addUserOrganization(organ);
-        return "Hello Oracle";
-    }
-
-    @RequestMapping("/queryAll.json")
-    String index3() {
-        List<BaseUser> baseUser = userService.findAll();
-
-        return JSON.toJSONString(baseUser);
-    }
-    @RequestMapping("/getBaseUserByPkey.json")
-    String getBaseUserByPkey(){
-        String id = "asd";
-        boolean flag = userService.existsById(id);
-        Map<String,Object> map = new HashMap<String,Object>();
-        map.put("msg","查询成功");
-        map.put("body",flag);
-        return JSON.toJSONString(map);
-    }
-    @RequestMapping(value = "/testException.json", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
-    Response testException(@RequestBody JSONObject jsonParam) throws ModelOperationException{
+    @RequestMapping(value = "/logon.json", method = {RequestMethod.GET,RequestMethod.POST}, produces = "application/json;charset=UTF-8")
+    Response logon(@RequestBody JSONObject jsonParam) throws ModelOperationException{
         System.out.println(jsonParam);
-        throw new ModelOperationException(ErrorCodeAndMsg.HTTP_CODE_500);
+        if(jsonParam==null || "".equals(jsonParam.get("username")) || "".equals(jsonParam.get("password"))){
+            throw new ModelOperationException(ErrorCodeAndMsg.HTTP_CODE_415);
+        }
+        BaseUser user = userService.checkLogonUser(jsonParam.get("username").toString(),jsonParam.get("password").toString(),"1");
+        return new Response(user);
     }
 }
