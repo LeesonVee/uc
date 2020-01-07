@@ -13,8 +13,9 @@ import org.springframework.web.filter.CorsFilter;
 public class UcApplication {
 	private static final Logger LOG = LoggerFactory.getLogger(UcApplication.class);
 	public static void main(String[] args) {
-		LOG.info("==========11");
+		LOG.info("==========开始启动uc==========");
 		SpringApplication.run(UcApplication.class, args);
+		LOG.info("==========启动成功==========");
 	}
 	private CorsConfiguration buildConfig() {
 		CorsConfiguration corsConfiguration = new CorsConfiguration();
