@@ -1,10 +1,11 @@
 package com.bsoft.service;
 
-import com.bsoft.entity.BaseUser;
-import com.bsoft.entity.TestUser;
-import com.bsoft.entity.UserOrganization;
+import com.bsoft.entity.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Arthur Administrator
@@ -20,4 +21,14 @@ public interface UserService {
     public List<BaseUser> findAll();
 
     public BaseUser checkLogonUser(String name,String password,String status);
+
+    public SysDomain saveOrUpdateSysDomain(SysDomain sysDomain);
+
+    public List<SysDomain> getSysDomain(String status);
+
+//    public List<SysDomain> querySysDomainByCondition(Map<String,Object> params);
+
+    public Map<String,Object> querySysDomainByCondition(Map<String,Object> params,int pageNo,int pageSize);
+    public Map<String,Object> queryUserOrganByCondition(Map<String,Object> params,int pageNo,int pageSize);
+
 }

@@ -24,35 +24,36 @@ public class UserOrganization {
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid")
     private String id;
-    private String organizcode;
-    private String registernumber;
-    private String organizsecondname;
-    private String organizname;
-    private String classifycode;
-    private String organiztype;
+    private String organizCode;
+    private String registerNumber;
+    private String organizSecondName;
+    private String organizName;
+    private String classifyCode;
+    private String organizType;
     private String admindivision;
     private String address;
-    private String streecode;
-    private String streename;
-    private String hostcode;
-    private String parentid;
-    private String subcode;
-    private String zipcode;
+    private String streeCode;
+    private String streeName;
+    private String hostCode;
+    private String parentId;
+    private String subCode;
+    private String zipCode;
     private String telphone;
     private String email;
-    private Date founddate;
+    private Date foundDate;
     private String legal;
-    private Integer subnum;
-    private Integer stationnum;
-    private String pycode;
+    private String subNum;
+    private String stationNum;
+    private String pyCode;
     private String grade;
-    private String institlevel;
-    private String buildingarea;
-    private String chemicalmednum;
-    private String chinesemednum;
+    private String institLevel;
+    private String buildingArea;
+    private String chemicalmedNum;
+    private String chinesemedNum;
     private String director;
     private String website;
     private String logoff;
+    private Date createDate;
 
     public String getId() {
         return id;
@@ -62,52 +63,52 @@ public class UserOrganization {
         this.id = id;
     }
 
-    public String getOrganizcode() {
-        return organizcode;
+    public String getOrganizCode() {
+        return organizCode;
     }
 
-    public void setOrganizcode(String organizcode) {
-        this.organizcode = organizcode;
+    public void setOrganizCode(String organizCode) {
+        this.organizCode = organizCode;
     }
 
-    public String getRegisternumber() {
-        return registernumber;
+    public String getRegisterNumber() {
+        return registerNumber;
     }
 
-    public void setRegisternumber(String registernumber) {
-        this.registernumber = registernumber;
+    public void setRegisterNumber(String registerNumber) {
+        this.registerNumber = registerNumber;
     }
 
-    public String getOrganizsecondname() {
-        return organizsecondname;
+    public String getOrganizSecondName() {
+        return organizSecondName;
     }
 
-    public void setOrganizsecondname(String organizsecondname) {
-        this.organizsecondname = organizsecondname;
+    public void setOrganizSecondName(String organizSecondName) {
+        this.organizSecondName = organizSecondName;
     }
 
-    public String getOrganizname() {
-        return organizname;
+    public String getOrganizName() {
+        return organizName;
     }
 
-    public void setOrganizname(String organizname) {
-        this.organizname = organizname;
+    public void setOrganizName(String organizName) {
+        this.organizName = organizName;
     }
 
-    public String getClassifycode() {
-        return classifycode;
+    public String getClassifyCode() {
+        return classifyCode;
     }
 
-    public void setClassifycode(String classifycode) {
-        this.classifycode = classifycode;
+    public void setClassifyCode(String classifyCode) {
+        this.classifyCode = classifyCode;
     }
 
-    public String getOrganiztype() {
-        return organiztype;
+    public String getOrganizType() {
+        return organizType;
     }
 
-    public void setOrganiztype(String organiztype) {
-        this.organiztype = organiztype;
+    public void setOrganizType(String organizType) {
+        this.organizType = organizType;
     }
 
     public String getAdmindivision() {
@@ -126,52 +127,52 @@ public class UserOrganization {
         this.address = address;
     }
 
-    public String getStreecode() {
-        return streecode;
+    public String getStreeCode() {
+        return streeCode;
     }
 
-    public void setStreecode(String streecode) {
-        this.streecode = streecode;
+    public void setStreeCode(String streeCode) {
+        this.streeCode = streeCode;
     }
 
-    public String getStreename() {
-        return streename;
+    public String getStreeName() {
+        return streeName;
     }
 
-    public void setStreename(String streename) {
-        this.streename = streename;
+    public void setStreeName(String streeName) {
+        this.streeName = streeName;
     }
 
-    public String getHostcode() {
-        return hostcode;
+    public String getHostCode() {
+        return hostCode;
     }
 
-    public void setHostcode(String hostcode) {
-        this.hostcode = hostcode;
+    public void setHostCode(String hostCode) {
+        this.hostCode = hostCode;
     }
 
-    public String getParentid() {
-        return parentid;
+    public String getParentId() {
+        return parentId;
     }
 
-    public void setParentid(String parentid) {
-        this.parentid = parentid;
+    public void setParentId(String parentId) {
+        this.parentId = parentId;
     }
 
-    public String getSubcode() {
-        return subcode;
+    public String getSubCode() {
+        return subCode;
     }
 
-    public void setSubcode(String subcode) {
-        this.subcode = subcode;
+    public void setSubCode(String subCode) {
+        this.subCode = subCode;
     }
 
-    public String getZipcode() {
-        return zipcode;
+    public String getZipCode() {
+        return zipCode;
     }
 
-    public void setZipcode(String zipcode) {
-        this.zipcode = zipcode;
+    public void setZipCode(String zipCode) {
+        this.zipCode = zipCode;
     }
 
     public String getTelphone() {
@@ -190,12 +191,12 @@ public class UserOrganization {
         this.email = email;
     }
 
-    public Date getFounddate() {
-        return founddate;
+    public Date getFoundDate() {
+        return foundDate;
     }
 
-    public void setFounddate(Date founddate) {
-        this.founddate = founddate;
+    public void setFoundDate(Date foundDate) {
+        this.foundDate = foundDate;
     }
 
     public String getLegal() {
@@ -206,28 +207,28 @@ public class UserOrganization {
         this.legal = legal;
     }
 
-    public Integer getSubnum() {
-        return subnum;
+    public String getSubNum() {
+        return subNum;
     }
 
-    public void setSubnum(Integer subnum) {
-        this.subnum = subnum;
+    public void setSubNum(String subNum) {
+        this.subNum = subNum;
     }
 
-    public Integer getStationnum() {
-        return stationnum;
+    public String getStationNum() {
+        return stationNum;
     }
 
-    public void setStationnum(Integer stationnum) {
-        this.stationnum = stationnum;
+    public void setStationNum(String stationNum) {
+        this.stationNum = stationNum;
     }
 
-    public String getPycode() {
-        return pycode;
+    public String getPyCode() {
+        return pyCode;
     }
 
-    public void setPycode(String pycode) {
-        this.pycode = pycode;
+    public void setPyCode(String pyCode) {
+        this.pyCode = pyCode;
     }
 
     public String getGrade() {
@@ -238,36 +239,36 @@ public class UserOrganization {
         this.grade = grade;
     }
 
-    public String getInstitlevel() {
-        return institlevel;
+    public String getInstitLevel() {
+        return institLevel;
     }
 
-    public void setInstitlevel(String institlevel) {
-        this.institlevel = institlevel;
+    public void setInstitLevel(String institLevel) {
+        this.institLevel = institLevel;
     }
 
-    public String getBuildingarea() {
-        return buildingarea;
+    public String getBuildingArea() {
+        return buildingArea;
     }
 
-    public void setBuildingarea(String buildingarea) {
-        this.buildingarea = buildingarea;
+    public void setBuildingArea(String buildingArea) {
+        this.buildingArea = buildingArea;
     }
 
-    public String getChemicalmednum() {
-        return chemicalmednum;
+    public String getChemicalmedNum() {
+        return chemicalmedNum;
     }
 
-    public void setChemicalmednum(String chemicalmednum) {
-        this.chemicalmednum = chemicalmednum;
+    public void setChemicalmedNum(String chemicalmedNum) {
+        this.chemicalmedNum = chemicalmedNum;
     }
 
-    public String getChinesemednum() {
-        return chinesemednum;
+    public String getChinesemedNum() {
+        return chinesemedNum;
     }
 
-    public void setChinesemednum(String chinesemednum) {
-        this.chinesemednum = chinesemednum;
+    public void setChinesemedNum(String chinesemedNum) {
+        this.chinesemedNum = chinesemedNum;
     }
 
     public String getDirector() {
@@ -294,38 +295,47 @@ public class UserOrganization {
         this.logoff = logoff;
     }
 
+    public Date getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
+    }
+
     public UserOrganization() {
     }
 
-    public UserOrganization(String organizcode, String registernumber, String organizsecondname, String organizname, String classifycode, String organiztype, String admindivision, String address, String streecode, String streename, String hostcode, String parentid, String subcode, String zipcode, String telphone, String email, Date founddate, String legal, Integer subnum, Integer stationnum, String pycode, String grade, String institlevel, String buildingarea, String chemicalmednum, String chinesemednum, String director, String website, String logoff) {
-        this.organizcode = organizcode;
-        this.registernumber = registernumber;
-        this.organizsecondname = organizsecondname;
-        this.organizname = organizname;
-        this.classifycode = classifycode;
-        this.organiztype = organiztype;
+    public UserOrganization(String organizCode, String registerNumber, String organizSecondName, String organizName, String classifyCode, String organizType, String admindivision, String address, String streeCode, String streeName, String hostCode, String parentId, String subCode, String zipCode, String telphone, String email, Date foundDate, String legal, String subNum, String stationNum, String pyCode, String grade, String institLevel, String buildingArea, String chemicalmedNum, String chinesemedNum, String director, String website, String logoff, Date createDate) {
+        this.organizCode = organizCode;
+        this.registerNumber = registerNumber;
+        this.organizSecondName = organizSecondName;
+        this.organizName = organizName;
+        this.classifyCode = classifyCode;
+        this.organizType = organizType;
         this.admindivision = admindivision;
         this.address = address;
-        this.streecode = streecode;
-        this.streename = streename;
-        this.hostcode = hostcode;
-        this.parentid = parentid;
-        this.subcode = subcode;
-        this.zipcode = zipcode;
+        this.streeCode = streeCode;
+        this.streeName = streeName;
+        this.hostCode = hostCode;
+        this.parentId = parentId;
+        this.subCode = subCode;
+        this.zipCode = zipCode;
         this.telphone = telphone;
         this.email = email;
-        this.founddate = founddate;
+        this.foundDate = foundDate;
         this.legal = legal;
-        this.subnum = subnum;
-        this.stationnum = stationnum;
-        this.pycode = pycode;
+        this.subNum = subNum;
+        this.stationNum = stationNum;
+        this.pyCode = pyCode;
         this.grade = grade;
-        this.institlevel = institlevel;
-        this.buildingarea = buildingarea;
-        this.chemicalmednum = chemicalmednum;
-        this.chinesemednum = chinesemednum;
+        this.institLevel = institLevel;
+        this.buildingArea = buildingArea;
+        this.chemicalmedNum = chemicalmedNum;
+        this.chinesemedNum = chinesemedNum;
         this.director = director;
         this.website = website;
         this.logoff = logoff;
+        this.createDate = createDate;
     }
 }
