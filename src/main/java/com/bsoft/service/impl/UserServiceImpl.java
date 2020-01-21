@@ -3,25 +3,26 @@ package com.bsoft.service.impl;/**
  * date 2019/12/27.
  */
 
+import com.alibaba.fastjson.JSON;
 import com.bsoft.entity.*;
-import com.bsoft.repository.BaseUserRepository;
-import com.bsoft.repository.SysDomainRepository;
-import com.bsoft.repository.TestUserRepository;
-import com.bsoft.repository.UserOrganizationRepository;
+import com.bsoft.message.ErrorCodeAndMsg;
+import com.bsoft.message.ModelOperationException;
+import com.bsoft.repository.*;
 import com.bsoft.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  *@ClassName UserServiceImpl
@@ -32,7 +33,7 @@ import java.util.Map;
  **/
 @Service
 public class UserServiceImpl implements UserService{
-
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
     @Autowired
     private TestUserRepository testUserRepository;
     @Autowired
@@ -43,6 +44,22 @@ public class UserServiceImpl implements UserService{
 
     @Autowired
     private SysDomainRepository sysDomainRepository;
+
+    @Autowired
+    private SysOfficeRepository sysOfficeRepository;
+
+    @Autowired
+    private SysRolesRepository sysRolesRepository;
+
+    @Autowired
+    private SysMenuPageRepository sysMenuPageRepository;
+
+    @Autowired
+    private SysMenuRepository sysMenuRepository;
+    @Autowired
+    private SysPersonnelRepository sysPersonnelRepository;
+    @Autowired
+    private BaseUserRolesRepository baseUserRolesRepository;
 
     @PersistenceContext
     EntityManager entityManagerPrimary;
@@ -85,10 +102,18 @@ public class UserServiceImpl implements UserService{
     public SysDomain saveOrUpdateSysDomain(SysDomain sysDomain) {
         return sysDomainRepository.save(sysDomain);
     }
+    @Override
+    public UserOrganization saveOrUpdateUserOrganization(UserOrganization userOrganization) {
+        return userOrganizationRepository.save(userOrganization);
+    }
+    @Override
+    public SysOffice saveOrUpdateSysOffice(SysOffice sysOffice) {
+        return sysOfficeRepository.save(sysOffice);
+    }
 
     @Override
     public List<SysDomain> getSysDomain(String status) {
-        return sysDomainRepository.getSysDomains(status);
+        return sysDomainRepository.getAllSysDomainsByStatusOrderByCreateDateDesc(status);
     }
 
 //    public List<SysDomain> querySysDomainByCondition(Map<String,Object> params) {
@@ -137,8 +162,6 @@ public class UserServiceImpl implements UserService{
         map.put("msg","查询成功");
         return map;
     }
-
-    @Override
     public Map<String, Object> queryUserOrganByCondition(Map<String, Object> params, int pageNo, int pageSize) {
         StringBuffer sql = new StringBuffer(0);
         StringBuffer countSql = new StringBuffer(0);
@@ -146,13 +169,18 @@ public class UserServiceImpl implements UserService{
         sql.append("SELECT * FROM USER_ORGANIZATION  WHERE ");
         int i = 0,length = params.size();
         for(String key : params.keySet()){
-            i++;
+            if(i>0 && i<length){
+                if(key.equalsIgnoreCase("parent_id")){
+                    sql.append(" or ");
+                    countSql.append(" or ");
+                }else{
+                    sql.append(" and ");
+                    countSql.append(" and ");
+                }
+            }
             sql.append(key).append(" = '").append(params.get(key)).append("'");
             countSql.append(key).append(" = '").append(params.get(key)).append("'");
-            if(i<length){
-                sql.append(" and ");
-                countSql.append(" and ");
-            }
+            i++;
         }
         sql.append(" ORDER BY CREATE_DATE DESC");
         Query dataQuery = entityManagerPrimary.createNativeQuery(sql.toString(),UserOrganization.class);
@@ -167,5 +195,360 @@ public class UserServiceImpl implements UserService{
         map.put("code","200");
         map.put("msg","查询成功");
         return map;
+    }
+    /*** 
+     * @Description: 查询机构表，并组装成树形结构数据
+     * @Author: Vee
+     * @return: java.util.Map<java.lang.String,java.lang.Object>
+     * @Date:  2020/1/8
+     **/ 
+    public Map<String,Object> loadOrganTreeData() throws ModelOperationException {
+        List<TreeDTO> list = userOrganizationRepository.findAllUserOrganizations("1");
+        return getTreeData(list,"","");
+    }
+    /***
+     * @Description: 查询科室表，并组装成树形结构数据
+     * @Author: Vee
+     * @return: java.util.Map<java.lang.String,java.lang.Object>
+     * @Date:  2020/1/8
+     **/
+    public Map<String,Object> loadOfficeTreeData(String organId,String organName) throws ModelOperationException {
+        List<TreeDTO> list = sysOfficeRepository.findAllSysOffices("1",organId);
+        return getTreeData(list,organId,organName);
+    }
+    /***
+     * 根据主键id，查询科室信息
+     * @Author: Vee
+     * @Param: pkey 主键
+     * @return: SysOffice
+     * @Date:  2020/1/10
+     **/
+    public SysOffice loadSysOffice(String pkey){
+        return sysOfficeRepository.findAllById(pkey);
+    }
+    public List<SysRoles> loadSysRoles(String outDomainId){
+        List<SysRoles> list = new ArrayList<SysRoles>();
+        if("".equals(outDomainId)){
+            list = sysRolesRepository.getAllSysRolesByStatusOrderByModifyDateDesc("1");
+        }else{
+            list = sysRolesRepository.getAllSysRolesByStatusAndOutDomainIdOrderByModifyDateDesc("1",outDomainId);
+        }
+        return list;
+    }
+    public SysRoles saveOrUpdateSysRoles(SysRoles sysRoles){
+        return sysRolesRepository.save(sysRoles);
+    }
+
+    @Override
+    public Page<SysMenus> loadSysMenusByPage(Map<String,Object> params,int countParams) throws ModelOperationException{
+        Page<SysMenus> pages;
+        Pageable pageable =PageRequest.of((int)params.get("pageNo"),(int)params.get("pageSize"),Sort.by(Sort.Order.desc("modifyDate")));
+        switch (countParams){
+            case 1:
+                pages =  sysMenuPageRepository.findAllByStatusAndMenuParentIdIsNull(params.get("status").toString(),pageable);
+                break;
+            case 2:
+                pages =  sysMenuPageRepository.findAllByStatusAndMenuNameAndMenuParentIdIsNull(params.get("status").toString(),params.get("menuName").toString(),pageable);
+                break;
+            case 3:
+                pages =  sysMenuPageRepository.findAllByStatusAndMenuCodeAndMenuParentIdIsNull(params.get("status").toString(),params.get("menuCode").toString(),pageable);
+                break;
+            case 4:
+                pages =  sysMenuPageRepository.findAllByStatusAndOutRoleIdAndMenuParentIdIsNull(params.get("status").toString(),params.get("outRoleId").toString(),pageable);
+                break;
+            case 5:
+                pages =  sysMenuPageRepository.findAllByStatusAndMenuNameAndMenuCodeAndMenuParentIdIsNull(params.get("status").toString(),params.get("menuName").toString(),params.get("menuCode").toString(),pageable);
+                break;
+            case 6:
+                pages =  sysMenuPageRepository.findAllByStatusAndMenuNameAndOutRoleIdAndMenuParentIdIsNull(params.get("status").toString(),params.get("menuName").toString(),params.get("outRoleId").toString(),pageable);
+                break;
+            case 7:
+                pages =  sysMenuPageRepository.findAllByStatusAndMenuCodeAndOutRoleIdAndMenuParentIdIsNull(params.get("status").toString(),params.get("menuCode").toString(),params.get("outRoleId").toString(),pageable);
+                break;
+            case 8:
+                pages =  sysMenuPageRepository.findAllByStatusAndMenuNameAndMenuCodeAndOutRoleIdAndMenuParentIdIsNull(params.get("status").toString(),params.get("menuName").toString(),params.get("menuCode").toString(),params.get("outRoleId").toString(),pageable);
+                break;
+            default:
+                throw new ModelOperationException(ErrorCodeAndMsg.HTTP_CODE_500);
+        }
+
+        return pages;
+    }
+
+    @Override
+    public List<SysMenus> loadSysMenusByMenuParentIdAndStatus(String parentId) {
+        return sysMenuRepository.getAllByMenuParentIdAndStatus(parentId,"1");
+    }
+
+    @Override
+    public SysMenus saveOrUpdateSysMenus(SysMenus sysMenus) {
+        return sysMenuRepository.save(sysMenus);
+    }
+
+    @Override
+    public void updateSysMenus(String subMenuStatus, Date modifyDte, String pkey) {
+        sysMenuRepository.updateSysMenus(subMenuStatus,modifyDte,pkey);
+    }
+    /**
+     * 加载机构和科室树
+     * @Author: Vee
+     * @Param: []
+     * @return: java.util.Map<java.lang.String,java.lang.Object>
+     * @Date:  2020/1/15
+     **/
+    @Override
+    public Map<String, Object> loadOrganOfficeTreeData(String type,String parentId,String parentText) throws ModelOperationException {
+        Map<String,Object> treeDataMap = new HashMap<String,Object>();
+        List<TreeData> treeDataList = new ArrayList<>();
+        List<TreeDTO> list = new ArrayList<>();
+        if("1".equals(type)){
+            if(parentId==null){
+                list = userOrganizationRepository.findAllUserOrganizationsByParentIdIsNull("1");
+            }else{
+                list = userOrganizationRepository.findAllUserOrganizationsByParentId("1",parentId);
+            }
+            if(list==null || list.size()==0){
+                treeDataMap.put("totalCount",0);
+                treeDataMap.put("data",null);
+                return treeDataMap;
+            }
+            treeDataList = this.getTreeDataNoChildren(list,parentId,parentText);
+            if(parentId!=null && !"".equals(parentId)){
+                List<TreeDTO> officeList = sysOfficeRepository.findAllSysOfficesByOrganizCode("1",parentId);
+                if(officeList==null || officeList.size()==0){
+//                    treeDataMap.put("totalCount",treeDataList.size());
+                    treeDataMap.put("data",treeDataList);
+                    return treeDataMap;
+                }
+                List<TreeData> treeOfficeList = this.getTreeDataNoChildren(officeList,parentId,parentText);
+                treeDataList.addAll(treeOfficeList);
+            }
+        }else{
+            if(parentId!=null && !"".equals(parentId)){
+                List<TreeDTO> officeList = sysOfficeRepository.findAllSysOfficesByOrganizCode("1",parentId);
+                treeDataList = this.getTreeDataNoChildren(officeList,parentId,parentText);
+            }
+        }
+        treeDataMap.put("totalCount",treeDataList==null?0:treeDataList.size());
+        treeDataMap.put("data",treeDataList);
+        return treeDataMap;
+    }
+    /**
+     * 根据机构id或者科室id查询用户信息
+     * @Author: Vee
+     * @Param: type:1机构，2科室
+     * @Param: id:机构id或者科室id
+     * @return: java.util.List<com.bsoft.entity.SysPersonnel> 人员集合
+     * @Date:  2020/1/15
+     **/
+    @Override
+    public List<SysPersonnel> findSysPersonnelByOrganIdOrOfficeId(String type, String id) {
+        List<SysPersonnel> list = new ArrayList<>();
+        if("1".equals(type)){
+            list=sysPersonnelRepository.findSysPersonnelsByOrganizCodeAndLogOff(id,"1");
+        }else{
+            list=sysPersonnelRepository.findSysPersonnelsByOfficeCodeAndLogOff(id,"1");
+        }
+        return list;
+    }
+
+    @Override
+    public List<TreeEntityDTO> loadOrganTreeData(String logoff) {
+        return userOrganizationRepository.findTreeUserOrganizations(logoff);
+    }
+
+    @Override
+    public List<TreeEntityDTO> loadOfficeTreeDataByOrganId(String logoff, String organId) {
+        return sysOfficeRepository.findTreeSysOfficesByOrganizCode(logoff,organId);
+    }
+
+    @Override
+    public SysPersonnel saveOrUpdateSysPersonnel(SysPersonnel sysPersonnel) {
+        return sysPersonnelRepository.save(sysPersonnel);
+    }
+
+    @Override
+    public List<SysPersonnel> loadSysPersonnels(String filedType,String filedValue,String type,String typeVal) throws ModelOperationException{
+        List<SysPersonnel> list = new ArrayList<SysPersonnel>();
+        String logoff="1";
+        switch (filedType){
+            case "1":
+                if("1".equals(type)){
+                    list = sysPersonnelRepository.findSysPersonnelsByOrganizCodeAndLogOffAndPersonId(typeVal,logoff,filedValue);
+                }else{
+                    list = sysPersonnelRepository.findSysPersonnelsByOfficeCodeAndLogOffAndPersonId(typeVal,logoff,filedValue);
+                }
+                break;
+            case "2":
+                if("1".equals(type)){
+                    list = sysPersonnelRepository.findSysPersonnelsByOrganizCodeAndLogOffAndGh(typeVal,logoff,filedValue);
+                }else{
+                    list = sysPersonnelRepository.findSysPersonnelsByOfficeCodeAndLogOffAndGh(typeVal,logoff,filedValue);
+                }
+                break;
+            case "3":
+                if("1".equals(type)){
+                    list = sysPersonnelRepository.findSysPersonnelsByOrganizCodeAndLogOffAndPersonName(typeVal,logoff,filedValue);
+                }else{
+                    list = sysPersonnelRepository.findSysPersonnelsByOfficeCodeAndLogOffAndPersonName(typeVal,logoff,filedValue);
+                }
+                break;
+            case "4":
+                if("1".equals(type)){
+                    list = sysPersonnelRepository.findSysPersonnelsByOrganizCodeAndLogOffAndCardNum(typeVal,logoff,filedValue);
+                }else{
+                    list = sysPersonnelRepository.findSysPersonnelsByOfficeCodeAndLogOffAndCardNum(typeVal,logoff,filedValue);
+                }
+                break;
+            case "5":
+                if("1".equals(type)){
+                    list = sysPersonnelRepository.findSysPersonnelsByOrganizCodeAndLogOffAndMobile(typeVal,logoff,filedValue);
+                }else{
+                    list = sysPersonnelRepository.findSysPersonnelsByOfficeCodeAndLogOffAndMobile(typeVal,logoff,filedValue);
+                }
+                break;
+            default:
+                throw new ModelOperationException(ErrorCodeAndMsg.HTTP_CODE_500);
+        }
+        return list;
+    }
+
+    @Override
+    public List<UserMixEntity> loadUserMixDatas(String filedName,String filedValue,String organId) {
+        List<UserMixEntity> list;
+        String status = "1";
+        switch (filedName){
+            case "personId":
+                list = baseUserRepository.getUserMixsByStatusAndOrganCodeAndPersonnelId(status,organId,filedValue);
+                break;
+            case "personName":
+                list = baseUserRepository.getUserMixsByStatusAndOrganCodeAndPersonName(status,organId,filedValue);
+                break;
+            case "cardNum":
+                list = baseUserRepository.getUserMixsByStatusAndOrganCodeAndCardNum(status,organId,filedValue);
+                break;
+            default:
+                list = baseUserRepository.getUserMixsByStatusAndOrganCode(status,organId);
+                break;
+        }
+        return list;
+    }
+
+    @Override
+    public List<BaseUserRolesDTO> loadBaseUserRolesByUserId(String userId) {
+        return baseUserRolesRepository.getMixBaseUserRolesByUserIdAndLogoff(userId,"1");
+    }
+
+    @Override
+    public Map<String, Object> loadDomainAndRolesAndOrgan() {
+        Map<String,Object> map = new HashMap<String,Object>();
+        List<UserOrganization> organList = userOrganizationRepository.findAllByLogoff("1");
+        List<SysRoles> sysRolesList = sysRolesRepository.getAllSysRolesByStatusOrderByModifyDateDesc("1");
+        List<SysDomain> sysDomainList = sysDomainRepository.getAllSysDomainsByStatusOrderByCreateDateDesc("1");
+        map.put("organData",organList);
+        map.put("rolesData",sysRolesList);
+        map.put("domainData",sysDomainList);
+        return map;
+    }
+
+    @Override
+    public void saveOrUpdateUserInfo(BaseUser baseUser, List<Map<String,Object>> list) throws ModelOperationException{
+        Date now = new Date();
+        if(baseUser.getCreatedt()==null){
+            baseUser.setCreatedt(now);
+        }
+        baseUser = baseUserRepository.save(baseUser);
+        for(Map<String,Object> map:list){
+            BaseUserRoles baseUserRoles = JSON.parseObject(JSON.toJSONString(map),BaseUserRoles.class);
+            baseUserRoles.setUserId(baseUser.getId());
+            if(baseUserRoles.getCreateTime()==null){
+                baseUserRoles.setCreateTime(now);
+            }
+            if(baseUserRoles.getLastLoginTime()==null){
+                baseUserRoles.setLastLoginTime(now);
+            }
+            baseUserRolesRepository.save(baseUserRoles);
+        }
+    }
+
+    private List<TreeData> getTreeDataNoChildren(List<TreeDTO> list,String parentId,String parentText){
+        if(list==null || list.size()==0){
+            return null;
+        }
+        List<TreeData> datas = new ArrayList<TreeData>();
+        List<TreeData> items = new ArrayList<TreeData>();
+        Map<String,Object> map= new HashMap<String,Object>();
+        if(parentId!=null && !"".equals(parentId)){
+            map.put(parentId,parentText);
+        }
+        for(TreeDTO dto:list){
+            Map<String,Object> props=new HashMap<String,Object>();
+            props.put("parentId",dto.getParentId()==null?parentId:dto.getParentId());
+            props.put("parentText",parentText);
+            props.put("type",dto.getType());
+            map.put(dto.getId(),dto.getName());
+            TreeData treeData = new TreeData(dto.getId(), dto.getName(), props,items);
+            datas.add(treeData);
+        }
+        return datas;
+    }
+    /***
+     * @Description: 组装树形数据，并存放在map中
+     * @Author: Vee
+     * @Param: list 需要组装的数据
+     * @Param: parentId：顶级父级ID
+     * @return: java.util.Map<java.lang.String,java.lang.Object>
+     * @Date:  2020/1/9
+     **/
+    private Map<String,Object> getTreeData(List<TreeDTO> list,String parentId,String parentText){
+        Map<String,Object> map =new HashMap<String,Object>();
+        map.put("msg","查询成功");
+        map.put("code","200");
+        if(list==null || list.size()==0){
+            map.put("totalCount",0);
+            map.put("data",null);
+        }else{
+            List<TreeData> items = new ArrayList<TreeData>();
+            map.put("totalCount",list.size());
+            List<TreeData> datas = new ArrayList<TreeData>();
+            Map<String,Object> organMap= new HashMap<String,Object>();
+            if(parentId!=null && !"".equals(parentId)){
+                organMap.put(parentId,parentText);
+            }
+            for(TreeDTO dto:list){
+                organMap.put(dto.getId(),dto.getName());
+                Map<String,Object> props=new HashMap<String,Object>();
+                props.put("parentId",dto.getParentId()==null?parentId:dto.getParentId());
+                props.put("parentText",parentText);
+                props.put("type",dto.getType());
+                TreeData treeData = new TreeData(dto.getId(), dto.getName(), props,items);
+                datas.add(treeData);
+            }
+            List<TreeData> resultTreeData = this.buildTree(datas,organMap,parentId);
+            map.put("data",resultTreeData);
+        }
+        return map;
+    }
+    /***
+     * @Description: 组装
+     * @Author: Vee
+     * @Param: [treeDatas, map, pid]
+     * @return: java.util.List<com.bsoft.entity.TreeData>
+     * @Date:  2020/1/9
+     **/
+    private List<TreeData> buildTree(List<TreeData> treeDatas,Map<String,Object> map, String pid) {
+        List<TreeData> treeList = new ArrayList<TreeData>();
+        for (TreeData treeData : treeDatas) {
+            Map<String, Object> props = new HashMap<String, Object>();
+            props = treeData.getProperties();
+            if (props.get("parentId").equals(pid)) {
+                if(pid!=null && !"".equals(pid)){
+                    props.put("parentText",map.get(pid));
+                }
+                treeData.setItems(buildTree(treeDatas,map,treeData.getKey()));
+                treeList.add(treeData);
+            }
+        }
+        return treeList;
     }
 }

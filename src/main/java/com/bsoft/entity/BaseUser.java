@@ -31,6 +31,7 @@ public class BaseUser {
     private String status;
 //    @Column(name="createdt")
     private Date createdt;
+    private String personId;
 
     public String getId() {
         return id;
@@ -72,14 +73,20 @@ public class BaseUser {
         this.createdt = createdt;
     }
 
-    public BaseUser() {
-
+    public String getPersonId() {
+        return personId;
+    }
+    public void setPersonId(String personId) {
+        this.personId = personId;
     }
 
-    public BaseUser(String name, String password, String status, Date createdt) {
+    public BaseUser() {}
+
+    public BaseUser(String name, String password, String status, Date createdt, String personId) {
         this.name = name;
         this.password = password;
         this.status = status;
         this.createdt = createdt;
+        this.personId = personId;
     }
 }

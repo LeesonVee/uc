@@ -14,4 +14,6 @@ import java.util.List;
 public interface SysDomainRepository extends CrudRepository<SysDomain,Integer> {
     @Query(value = "SELECT * FROM SYS_DOMAIN where status = ?1 ORDER BY CREATE_DATE", nativeQuery = true)
     List<SysDomain> getSysDomains( String status);
+
+    List<SysDomain> getAllSysDomainsByStatusOrderByCreateDateDesc(String status);
 }
