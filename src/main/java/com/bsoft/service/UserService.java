@@ -1,10 +1,12 @@
 package com.bsoft.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.bsoft.entity.*;
 import com.bsoft.message.ModelOperationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -73,5 +75,35 @@ public interface UserService {
     public Map<String,Object> loadDomainAndRolesAndOrgan();
 
     public void saveOrUpdateUserInfo(BaseUser baseUser,List<Map<String,Object>> list);
+
+
+    public void saveOrUpdateUserCenterKey(UserCenterKey ucKey);
+
+
+    public List<UserCenterKey> loadAllUserCenterKey(String status);
+
+    public List<UserCenterKey> loadAllUserCenterKeyByContions(String status,String centerKey);
+
+    public List<BaseUserRelationEntityDTO> loadBaseUserRelationByConditions(String type,String organId,String filedValue);
+
+    public void updateBaseUserRelation(String localUserId,String username, Date modifyDate, String id);
+
+    public int vaildCenterKeyAndUesrId(String centerKey,String userId,String pwd);
+
+    public void saveOrUpdateBaseUserRelation(JSONObject params) throws NoSuchAlgorithmException;
+
+    public boolean delBaseUserRelationById(String id,String centerKey);
+
+    public List<SysPersonnelEntityDTO> loadSysPersonnelByOrganId(String status,String organId);
+
+    /**
+     * 第三方用户获取对应用户中心详细信息
+     * @param centerKey
+     * @param outUserId
+     * @param pwd
+     * @return
+     * @throws Exception
+     */
+    public Map<String,Object> loadDetailInfoByOutUserIdAndPwd(String centerKey,String outUserId,String pwd) throws Exception;
 
 }

@@ -14,8 +14,8 @@ import java.util.List;
 public interface BaseUserRepository extends CrudRepository<BaseUser,Integer> {
     @Query(value = "SELECT * FROM base_user where id = ?1", nativeQuery = true)
     BaseUser getBaseUserByPwd(String id);
-    @Query(value = "SELECT * FROM base_user where name = ?1 AND PASSWORD=?2 AND STATUS=?3", nativeQuery = true)
-    List<BaseUser> getLogonUsers(String name,String pwd,String status);
+    @Query(value = "SELECT * FROM base_user where (name = ?1 OR person_id = ?2) AND PASSWORD=?3 AND STATUS=?4", nativeQuery = true)
+    List<BaseUser> getLogonUsers(String name,String personId,String pwd,String status);
     @Query(value = "select a.id as id,b.personId as personId,b.personName as personName,b.cardNum as cardNum," +
             "a.status as status,b.gender as gender,b.mobile as mobile,b.pyCode as pyCode,a.createdt as createDt" +
             " from BaseUser a left join SysPersonnel b on a.personId=b.personId where a.status=?1 and b.organizCode=?2")

@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 /**
@@ -568,4 +569,110 @@ public class UserController {
         userService.saveOrUpdateUserInfo(user,list);
         return new Response(true);
     }
+    @RequestMapping(value = "/saveOrUpdateUserCenterKey.json", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    public Response doSaveOrUpdateUserCenterKey(@RequestBody JSONObject json) throws ModelOperationException{
+        if(!json.containsKey("opt")){
+            throw new ModelOperationException(ErrorCodeAndMsg.HTTP_CODE_415);
+        }
+        String opt = json.getString("opt");
+        UserCenterKey ucKey = new UserCenterKey();
+        if("create".equals(opt)){
+            String uuid = UUID.randomUUID().toString();
+            uuid = uuid.substring(0, 8) + uuid.substring(9, 13) + uuid.substring(14, 18) + uuid.substring(19, 23);
+            ucKey.setCenterKey(uuid);
+            ucKey.setCreateDate(new Date());
+            ucKey.setModifyDate(new Date());
+            ucKey.setStatus("1");
+        }else{
+            ucKey.setId(json.getString("id"));
+            ucKey.setCenterKey(json.getString("centerKey"));
+            ucKey.setCreateDate(json.getDate("createDate"));
+            ucKey.setModifyDate(new Date());
+            ucKey.setStatus(json.getString("status"));
+        }
+        userService.saveOrUpdateUserCenterKey(ucKey);
+        return new Response(true);
+    }
+    @RequestMapping(value = "/loadAllUserCenterKey.json", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    public Response doLoadAllUserCenterKey(@RequestBody JSONObject json) throws ModelOperationException{
+        List<UserCenterKey>  list = userService.loadAllUserCenterKey(json.getString("status"));
+        return new Response(list);
+    }
+    @RequestMapping(value = "/loadUserCenterKeyByConditions.json", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    public Response doLoadUserCenterKeyByConditions(@RequestBody JSONObject json) throws ModelOperationException{
+        List<UserCenterKey> list;
+        String status = "0";
+        if(json.containsKey("status")){
+            status = json.getString("status");
+        }
+        if(json.containsKey("centerKey")){
+            list = userService.loadAllUserCenterKeyByContions(status,json.getString("centerKey"));
+        }else{
+            list = userService.loadAllUserCenterKey(status);
+        }
+        return new Response(list);
+    }
+    @RequestMapping(value = "/loadBaseUserRelation.json", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    public Response doLoadBaseUserRelation(@RequestBody JSONObject json) throws ModelOperationException{
+
+        return new Response(userService.loadBaseUserRelationByConditions(json.getString("type"),json.getString("organId"),json.getString("val")));
+    }
+
+    @RequestMapping(value = "/updateBaseUserRelation.json", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    public Response doUpdateBaseUserRelation(@RequestBody JSONObject json) throws ModelOperationException{
+        userService.updateBaseUserRelation(json.getString("localUserId"),json.getString("username"),new Date(),json.getString("id"));
+        return new Response(true);
+    }
+
+    @RequestMapping(value = "/vaildCenterKeyAndUesrId.json", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    public Response doVaildCenterKeyAndUesrId(@RequestBody JSONObject json) throws ModelOperationException{
+        /**
+         * 返回值：0密钥无效；1密钥和密码合法，2密码错误
+         */
+        return new Response(userService.vaildCenterKeyAndUesrId(json.getString("centerKey"),json.getString("localUserId"),json.getString("pwd")));
+    }
+
+    @RequestMapping(value = "/saveOrUpdateBaseUserRelation.json", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    public Response doSaveOrUpdateBaseUserRelation(@RequestBody JSONObject json) throws ModelOperationException{
+        try {
+            userService.saveOrUpdateBaseUserRelation(json);
+        } catch (NoSuchAlgorithmException e) {
+            logger.error(e.getMessage());
+            throw new ModelOperationException(ErrorCodeAndMsg.HTTP_CODE_500);
+        }
+        return new Response(true);
+    }
+    @RequestMapping(value = "/delBaseUserRelationById.json", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    public Response doDelBaseUserRelationById(@RequestBody JSONObject json){
+        userService.delBaseUserRelationById(json.getString("id"),json.getString("centerKey"));
+        return new Response(true);
+    }
+    @RequestMapping(value = "/loadSysPersonnelByOrganId.json", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    public Response doLoadSysPersonnelByOrganId(@RequestBody JSONObject json){
+        return new Response(userService.loadSysPersonnelByOrganId("1",json.getString("organId")));
+    }
+    @RequestMapping(value = "/loadDetailInfoByOutUserIdAndPwd.json", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    public Map<String,Object> doLoadDetailInfoByOutUserIdAndPwd(@RequestBody JSONObject json)  throws ModelOperationException{
+        if(!json.containsKey("centerKey")){
+            logger.error("参数错误：请传入平台密钥");
+            throw new ModelOperationException(ErrorCodeAndMsg.HTTP_CODE_415);
+        }
+        if(!json.containsKey("userId")){
+            logger.error("参数错误：请传入用户ID");
+            throw new ModelOperationException(ErrorCodeAndMsg.HTTP_CODE_415);
+        }
+        if(!json.containsKey("pwd")){
+            logger.error("参数错误：请传入密码");
+            throw new ModelOperationException(ErrorCodeAndMsg.HTTP_CODE_415);
+        }
+        Map<String,Object> map;
+        try {
+            map = userService.loadDetailInfoByOutUserIdAndPwd(json.getString("centerKey"),json.getString("userId"),json.getString("pwd"));
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            throw new ModelOperationException(ErrorCodeAndMsg.HTTP_CODE_500);
+        }
+        return map;
+    }
+
 }

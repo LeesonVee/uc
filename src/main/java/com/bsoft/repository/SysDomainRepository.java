@@ -16,4 +16,6 @@ public interface SysDomainRepository extends CrudRepository<SysDomain,Integer> {
     List<SysDomain> getSysDomains( String status);
 
     List<SysDomain> getAllSysDomainsByStatusOrderByCreateDateDesc(String status);
+
+    List<SysDomain> getSysDomainsByStatusAndId(String status,String id);
 }

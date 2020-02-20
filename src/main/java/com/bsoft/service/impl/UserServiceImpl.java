@@ -4,11 +4,13 @@ package com.bsoft.service.impl;/**
  */
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.bsoft.entity.*;
 import com.bsoft.message.ErrorCodeAndMsg;
 import com.bsoft.message.ModelOperationException;
 import com.bsoft.repository.*;
 import com.bsoft.service.UserService;
+import com.bsoft.utils.RSAEncrypt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import java.math.BigDecimal;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 /**
@@ -60,6 +63,10 @@ public class UserServiceImpl implements UserService{
     private SysPersonnelRepository sysPersonnelRepository;
     @Autowired
     private BaseUserRolesRepository baseUserRolesRepository;
+    @Autowired
+    private UserCenterKeyRepository userCenterKeyRepository;
+    @Autowired
+    private BaseUserRelationRepository baseUserRelationRepository;
 
     @PersistenceContext
     EntityManager entityManagerPrimary;
@@ -91,7 +98,7 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public BaseUser checkLogonUser(String name, String password,String status) {
-        List<BaseUser> list = baseUserRepository.getLogonUsers(name,password,status);
+        List<BaseUser> list = baseUserRepository.getLogonUsers(name,name,password,status);
         if(list!=null && list.size()>0){
             return list.get(0);
         }
@@ -469,6 +476,148 @@ public class UserServiceImpl implements UserService{
             }
             baseUserRolesRepository.save(baseUserRoles);
         }
+    }
+
+    @Override
+    public void saveOrUpdateUserCenterKey(UserCenterKey ucKey) {
+        userCenterKeyRepository.save(ucKey);
+    }
+
+    @Override
+    public List<UserCenterKey> loadAllUserCenterKey(String status) {
+        if("0".equals(status)){
+            return userCenterKeyRepository.getAllUserCenterKeyByStatusIsNotOrderByModifyDateDesc(status);
+        }else{
+            return userCenterKeyRepository.getAllUserCenterKeyByStatusOrderByModifyDateDesc(status);
+        }
+    }
+
+    @Override
+    public List<UserCenterKey> loadAllUserCenterKeyByContions(String status, String centerKey) {
+        if("0".equals(status)){
+            return userCenterKeyRepository.getAllUserCenterKeyByStatusIsNotAndCenterKeyOrderByModifyDateDesc(status,centerKey);
+        }else{
+            return userCenterKeyRepository.getAllUserCenterKeyByStatusAndCenterKeyOrderByModifyDateDesc(status,centerKey);
+        }
+    }
+
+    @Override
+    public List<BaseUserRelationEntityDTO> loadBaseUserRelationByConditions(String type,String organId,String filedValue) {
+        List<BaseUserRelationEntityDTO> list;
+        switch (type){
+            case "0":
+                list = baseUserRelationRepository.getBaseUserRelationByOrganId(organId);
+                break;
+            case "1":
+                list = baseUserRelationRepository.getBaseUserRelationByOrganIdAndLocalUserId(organId,filedValue);
+                break;
+            case "2":
+                list = baseUserRelationRepository.getBaseUserRelationByOrganIdAndRemoteUserId(organId,filedValue);
+                break;
+            case "3":
+                list = baseUserRelationRepository.getBaseUserRelationByOrganIdAndUsername(organId,filedValue);
+                break;
+            default:
+                list = baseUserRelationRepository.getBaseUserRelationByOrganId(organId);
+                break;
+        }
+        return list;
+    }
+
+    @Override
+    public void updateBaseUserRelation(String localUserId,String username, Date modifyDate, String id) {
+        baseUserRelationRepository.updateBaseUserRelationById(localUserId,username,modifyDate,id);
+    }
+
+    @Override
+    public int vaildCenterKeyAndUesrId(String centerKey,String userId,String pwd) {
+        int status = 0;
+        List<UserCenterKey> ucKeys = userCenterKeyRepository.getAllUserCenterKeyByStatusAndCenterKeyOrderByModifyDateDesc("2",centerKey);
+        if(ucKeys!=null && ucKeys.size()>0){
+            List<BaseUser> baseUsers = baseUserRepository.getLogonUsers(userId,userId,pwd,"1");
+            if(baseUsers!=null && baseUsers.size()>0){
+                status = 1;
+            }else{
+                status = 2;
+            }
+        }
+        return status;
+    }
+
+    @Override
+    public void saveOrUpdateBaseUserRelation(JSONObject params) throws NoSuchAlgorithmException{
+        BaseUserRelation baseUserRelation = new BaseUserRelation();
+        List<BaseUserRelation> list = baseUserRelationRepository.getBaseUserRelationByCenterKeyAndRemoteUserId(params.getString("centerKey"),params.getString("remoteUserId"));
+        if(list!=null && list.size()>0){
+            baseUserRelation = list.get(0);
+        }else{
+            baseUserRelation.setCreateDate(new Date());
+            RSAEncrypt.genKeyPair();
+            baseUserRelation.setPublicKey(RSAEncrypt.keyMap.get(1));
+            baseUserRelation.setPrivateKey(RSAEncrypt.keyMap.get(0));
+        }
+        baseUserRelation.setModifyDate(new Date());
+        baseUserRelation.setLocalUserId(params.getString("localUserId"));
+        baseUserRelation.setCenterKey(params.getString("centerKey"));
+        baseUserRelation.setOrganId(params.getString("organId"));
+        baseUserRelation.setRemoteUserId(params.getString("remoteUserId"));
+        baseUserRelation.setUsername(params.getString("username"));
+        baseUserRelationRepository.save(baseUserRelation);
+    }
+
+    @Override
+    public boolean delBaseUserRelationById(String id,String centerKey) {
+        List<BaseUserRelation> list = baseUserRelationRepository.findBaseUserRelationByIdAndCenterKey(id,centerKey);
+        if(list==null || list.size()==0){
+            return false;
+        }
+        baseUserRelationRepository.delBaseUserRelationById(id);
+        return true;
+    }
+
+    @Override
+    public List<SysPersonnelEntityDTO> loadSysPersonnelByOrganId(String status, String organId) {
+        return sysPersonnelRepository.findSysPersonnelByOrganId(status,organId);
+    }
+
+    @Override
+    public Map<String, Object> loadDetailInfoByOutUserIdAndPwd(String centerKey,String outUserId, String pwd) throws Exception{
+        Map<String,Object> result = new HashMap<String,Object>();
+        result.put("code",200);
+        result.put("msg","获取数据成功");
+        List<BaseUserRelation> baseUserRelations = baseUserRelationRepository.getBaseUserRelationByCenterKeyAndRemoteUserId(centerKey,outUserId);
+        if(baseUserRelations==null || baseUserRelations.size()==0){
+            result.put("msg","密钥错误或账号未绑定中心用户");
+            result.put("code",415);
+            return result;
+        }
+        String personId = baseUserRelations.get(0).getLocalUserId();
+        List<BaseUser> baseUsers = baseUserRepository.getLogonUsers(personId,personId,pwd,"1");
+        if(baseUsers==null || baseUsers.size()==0){
+            result.put("msg","密码错误或绑定用户失效");
+            result.put("code",415);
+            return result;
+        }
+        List<SysPersonnel> sysPersonnels = sysPersonnelRepository.findSysPersonnelsByPersonIdAndLogOff(personId,"1");
+        Map<String,Object> body = new HashMap<String,Object>();
+        body.put("personInfo",sysPersonnels!=null?sysPersonnels.get(0):"");
+        List<BaseUserRoles> baseUserRolesList = baseUserRolesRepository.getBaseUserRolesByUserIdAndLogoff(baseUsers.get(0).getId(),"1");
+        List<Map<String,Object>> list = new ArrayList<Map<String,Object>>();
+        if(baseUserRolesList!=null && baseUserRolesList.size()>0){
+            for (BaseUserRoles role:baseUserRolesList) {
+                Map<String,Object> temp = new HashMap<String,Object>();
+                temp.put("roles",role);
+                List<SysDomain> sysDomains = sysDomainRepository.getSysDomainsByStatusAndId("1",role.getRoleId());
+                temp.put("domains",sysDomains);
+                List<SysMenus> sysMenuss = sysMenuRepository.getSysMenusByoutRoleIdAndStatus(role.getRoleId(),"1");
+                temp.put("menus",sysMenuss);
+                list.add(temp);
+            }
+        }
+        body.put("rolesMixInfo",list);
+        String data = JSON.toJSONString(body);
+        result.put("data",RSAEncrypt.encrypt(data,baseUserRelations.get(0).getPublicKey()));
+        return result;
     }
 
     private List<TreeData> getTreeDataNoChildren(List<TreeDTO> list,String parentId,String parentText){

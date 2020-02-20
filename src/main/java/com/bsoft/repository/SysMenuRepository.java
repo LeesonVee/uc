@@ -23,4 +23,6 @@ public interface SysMenuRepository extends CrudRepository<SysMenus,Integer> {
     @Transactional
     @Query(value = "update SYS_MENUS set SUB_MENU_STATUS=?1,MODIFY_DATE=?2 where id=?3", nativeQuery = true)
     void updateSysMenus(String subMenuStatus,Date modifyDate,String pkey);
+
+    List<SysMenus> getSysMenusByoutRoleIdAndStatus(String outRoleId,String status);
 }
